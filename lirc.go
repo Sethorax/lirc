@@ -2,6 +2,7 @@ package lirc
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/hex"
 	"errors"
 	"log"
@@ -85,7 +86,19 @@ func reader(scanner *bufio.Scanner, receive chan Event, reply chan Reply) {
 				state = REPLY
 			} else {
 				r := strings.Split(line, " ")
-				c, err := hex.DecodeString(r[0])
+				h := r[0]
+
+				if len(h) != 16 {
+					var buf bytes.Buffer
+					for i := len(h); i < 16; i++ {
+						buf.WriteString("0")
+					}
+					buf.WriteString(h)
+
+					h = buf.String()
+				}
+
+				c, err := hex.DecodeString(h)
 				if err != nil {
 					log.Println("Invalid lirc broadcats message received - code not parseable")
 					continue
